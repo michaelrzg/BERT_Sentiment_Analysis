@@ -2,6 +2,8 @@
 
 # The current tutorial is an updated version of the code available in the tutorial https://www.analyticsvidhya.com/blog/2021/12/fine-tune-bert-model-for-sentiment-analysis-in-google-colab/
 
+!pip install -q transformers
+
 from transformers import BertTokenizer
 import tensorflow_datasets as tfds
 from transformers import TFBertForSequenceClassification
