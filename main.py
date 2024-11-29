@@ -10,12 +10,12 @@ import tensorflow as tf
 def load_data():
   train = []
   test = []
-  file = open("dataset/train_formatted.csv")
+  file = open("dataset/train_formatted.csv",encoding="utf8")
   for line in file:
     l = line.split(",")
     l[1] = l[1].replace("\n","")
     train.append((l[1],l[0]))
-  file = open("dataset/test_formatted.csv")
+  file = open("dataset/test_formatted.csv",encoding="utf8")
   for line in file:
     l = line.split(",")
     l[1] = l[1].replace("\n","")
@@ -74,18 +74,20 @@ print("Loading data..")
 data = load_data()
 
 # encode train dataset
+print("Encoding..")
 ds_train_encoded = encode_all(data[0]).shuffle(10000).batch(batch_size)
 
 # encode test dataset
 ds_test_encoded = encode_all(data[1]).batch(batch_size)
 
 # Finally, we are training our model
+print("Training...")
 bert_history = model.fit(ds_train_encoded, epochs=number_of_epochs, validation_data=ds_test_encoded)
 
 # Example of testing, you will need to modify that part to accomodate the full test
 test_sentence = "This is a really good movie. I loved it and will watch again"
 
-# don't forget to tokenize your test inputs
+print("Testing..")
 predict_input = tokenizer.encode(test_sentence, truncation=True, padding=True, return_tensors="tf")
 
 tf_output = model.predict(predict_input)[0]
