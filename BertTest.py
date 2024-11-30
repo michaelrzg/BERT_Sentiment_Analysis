@@ -4,7 +4,6 @@
 
 
 from transformers import BertTokenizer
-import tensorflow_datasets as tfds
 from transformers import TFBertForSequenceClassification
 import tensorflow as tf
 
@@ -42,9 +41,9 @@ def encode_examples(ds, limit=-1):
   if (limit > 0):
       ds = ds.take(limit)
 
-  for review, label in tfds.as_numpy(ds):
+  for review, label in ds:
 
-    bert_input = convert_example_to_feature(review.decode())
+    bert_input = convert_example_to_feature(review)
     input_ids_list.append(bert_input['input_ids'])
 
     token_type_ids_list.append(bert_input['token_type_ids'])
@@ -53,9 +52,23 @@ def encode_examples(ds, limit=-1):
 
   return tf.data.Dataset.from_tensor_slices((input_ids_list, attention_mask_list, token_type_ids_list, label_list)).map(map_example_to_dict)
 
+def load_data():
+  train = []
+  test = []
+  file = open("dataset/train_formatted.csv",encoding="utf8")
+  for line in file:
+    l = line.split(",")
+    l[1] = l[1].replace("\n","")
+    train.append((l[1],l[0]))
+  file = open("dataset/test_formatted.csv",encoding="utf8")
+  for line in file:
+    l = line.split(",")
+    l[1] = l[1].replace("\n","")
+    test.append((l[1],l[0]))
+  return [train,test]
 
 # example of loading the imdb_reviews dataset - update that part with our amazon reviews
-(ds_train, ds_test), ds_info = tfds.load('imdb_reviews', split = (tfds.Split.TRAIN, tfds.Split.TEST), as_supervised=True, with_info=True)
+[ds_train, ds_test] = load_data()
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
