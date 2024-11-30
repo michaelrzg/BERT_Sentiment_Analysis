@@ -88,17 +88,21 @@ optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, epsilon=1e-08)
 # we do not have one-hot vectors, we can use sparce categorical cross entropy and accuracy
 loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 metric = tf.keras.metrics.SparseCategoricalAccuracy('accuracy')
+print("Compiling model..")
 model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
 # train dataset
+print("Encoding Training Dataset model..")
 ds_train_encoded = encode_examples(ds_train).shuffle(10000).batch(batch_size)
 
 # test dataset
+print("Encoding Testing Dataset model..")
 ds_test_encoded = encode_examples(ds_test).batch(batch_size)
 
 # Finally, we are training our model
+print("Training model..")
 bert_history = model.fit(ds_train_encoded, epochs=number_of_epochs, validation_data=ds_test_encoded)
-
+print("Training Complete. Testing..")
 # Example of testing, you will need to modify that part to accomodate the full test
 test_sentence = "This is a really good movie. I loved it and will watch again"
 
