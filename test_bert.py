@@ -39,7 +39,41 @@ def runtest(data):
                 correct+=1
                 tp+=1
     return [correct,tp,tn,fp,fn]
-              
+
+def evaluate_model(model, dataset, threshold=0.5):
+    """
+    Evaluate the model on the dataset and calculate accuracy, TP, FP, TN, FN.
+    
+    Args:
+        model: The trained Keras model.
+        dataset: List of tuples (sample, label), where:
+                 - sample: Input sample for the model.
+                 - label: Ground truth label (0 or 1 for binary classification).
+        threshold: Threshold to classify probabilities into binary predictions (default=0.5).
+    
+    Returns:
+        A dictionary containing accuracy, TP, FP, TN, FN.
+    """
+    # Prepare data for prediction
+    x_data = np.array([sample for sample, _ in dataset])
+    y_true = np.array([label for _, label in dataset])
+    
+    # Get predictions
+    y_pred_probs = model.predict(x_data)
+    
+    # Convert probabilities to binary predictions
+    y_pred = (y_pred_probs >= threshold).astype(int)
+    
+    # Compute metrics
+    tp = np.sum((y_pred == 1) & (y_true == 1))  # True Positives
+    fp = np.sum((y_pred == 1) & (y_true == 0))  # False Positives
+    tn = np.sum((y_pred == 0) & (y_true == 0))  # True Negatives
+    fn = np.sum((y_pred == 0) & (y_true == 1))  # False Negatives
+    
+    accuracy = (tp + tn) / len(y_true)  # Accuracy
+    
+    # Return metrics
+    return  [correct,tp,tn,fp,fn]           
 data = load_data()
 correct,tp,tn,fp,fn = runtest(data)
 accuracy = correct/len(data)
