@@ -8,6 +8,8 @@ from transformers import TFBertForSequenceClassification
 import tensorflow as tf
 
 
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
 # remember when we talked about the BertTokenizer
 def convert_example_to_feature(review):
   return tokenizer.encode_plus(review,
@@ -59,16 +61,19 @@ def load_data():
   for line in file:
     l = line.split(",")
     l[1] = l[1].replace("\n","")
-    train.append((l[1],l[0]))
+    train.append([l[1],l[0]])
   file = open("dataset/test_formatted.csv",encoding="utf8")
   for line in file:
     l = line.split(",")
     l[1] = l[1].replace("\n","")
-    test.append((l[1],l[0]))
+    test.append([l[1],l[0]])
   return [train,test]
 
-# example of loading the imdb_reviews dataset - update that part with our amazon reviews
 [ds_train, ds_test] = load_data()
+for batch in ds_test:
+  batch[1] = tf.strings.to_number(batch[1])
+for batch in ds_train:
+  batch[1] = tf.strings.to_number(batch[1])
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
@@ -116,3 +121,5 @@ labels = ['Negative','Positive'] #(0:negative, 1:positive)
 label = tf.argmax(tf_prediction, axis=1)
 label = label.numpy()
 print(labels[label[0]])
+
+model.save_pretrained("trained")
