@@ -97,29 +97,16 @@ print("Compiling model..")
 model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
 # train dataset
-print("Encoding Training Dataset model..")
+print("Encoding Training Dataset..")
 ds_train_encoded = encode_examples(ds_train[:20000]).shuffle(10000).batch(batch_size)
 
 # test dataset
-print("Encoding Testing Dataset model..")
+print("Encoding Testing Dataset.. ")
 ds_test_encoded = encode_examples(ds_test[:2000]).batch(batch_size)
 
 # Finally, we are training our model
 print("Training model..")
 bert_history = model.fit(ds_train_encoded, epochs=number_of_epochs, validation_data=ds_test_encoded)
-print("Training Complete. Testing..")
-# Example of testing, you will need to modify that part to accomodate the full test
-test_sentence = "This is a really good movie. I loved it and will watch again"
-
-# don't forget to tokenize your test inputs
-predict_input = tokenizer.encode(test_sentence, truncation=True, padding=True, return_tensors="tf")
-
-tf_output = model.predict(predict_input)[0]
-tf_prediction = tf.nn.softmax(tf_output, axis=1)
-
-labels = ['Negative','Positive'] #(0:negative, 1:positive)
-label = tf.argmax(tf_prediction, axis=1)
-label = label.numpy()
-print(labels[label[0]])
+print("Training Complete. \nSaving...")
 
 model.save_pretrained("trained")
