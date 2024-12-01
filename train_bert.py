@@ -6,8 +6,6 @@
 from transformers import BertTokenizer
 from transformers import TFBertForSequenceClassification
 import tensorflow as tf
-
-
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 # remember when we talked about the BertTokenizer
@@ -23,7 +21,7 @@ def convert_example_to_feature(review):
 max_length = 512
 
 # feel free to play around with the batch size for speed vs accuracy evaluation
-batch_size = 6
+batch_size = 1
 
 def map_example_to_dict(input_ids, attention_masks, token_type_ids, label):
   return {
@@ -98,11 +96,11 @@ model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
 # train dataset
 print("Encoding Training Dataset..")
-ds_train_encoded = encode_examples(ds_train[:2000]).shuffle(10000).batch(batch_size)
+ds_train_encoded = encode_examples(ds_train).shuffle(10000).batch(batch_size)
 
 # test dataset
 print("Encoding Testing Dataset.. ")
-ds_test_encoded = encode_examples(ds_test[:1000]).batch(batch_size)
+ds_test_encoded = encode_examples(ds_test).batch(batch_size)
 
 # Finally, we are training our model
 print("Training model..")
