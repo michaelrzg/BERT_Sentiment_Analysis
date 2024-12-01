@@ -98,11 +98,11 @@ model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
 # train dataset
 print("Encoding Training Dataset model..")
-ds_train_encoded = encode_examples(ds_train).shuffle(10000).batch(batch_size)
+ds_train_encoded = encode_examples(ds_train[:20000]).shuffle(10000).batch(batch_size)
 
 # test dataset
 print("Encoding Testing Dataset model..")
-ds_test_encoded = encode_examples(ds_test).batch(batch_size)
+ds_test_encoded = encode_examples(ds_test[:2000]).batch(batch_size)
 
 # Finally, we are training our model
 print("Training model..")
