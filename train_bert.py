@@ -1,14 +1,9 @@
-# -*- coding: utf-8 -*-
-
-# The current tutorial is an updated version of the code available in the tutorial https://www.analyticsvidhya.com/blog/2021/12/fine-tune-bert-model-for-sentiment-analysis-in-google-colab/
-
 
 from transformers import BertTokenizer
 from transformers import TFBertForSequenceClassification
 import tensorflow as tf
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-# remember when we talked about the BertTokenizer
 def convert_example_to_feature(review):
   return tokenizer.encode_plus(review,
                 add_special_tokens = True, # add [CLS], [SEP]
@@ -17,10 +12,8 @@ def convert_example_to_feature(review):
                 return_attention_mask = True, # add attention mask to not focus on pad tokens
               )
 
-# can be up to 512 for BERT as discussed in class
 max_length = 512
 
-# feel free to play around with the batch size for speed vs accuracy evaluation
 batch_size = 1
 
 def map_example_to_dict(input_ids, attention_masks, token_type_ids, label):
@@ -32,7 +25,6 @@ def map_example_to_dict(input_ids, attention_masks, token_type_ids, label):
 
 
 def encode_examples(ds, limit=-1):
-  # prepare list, so that we can build up final TensorFlow dataset from slices.
   input_ids_list = []
   token_type_ids_list = []
   attention_mask_list = []
@@ -76,33 +68,25 @@ for batch in ds_train:
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
 
-# feel free to play around with the learning rate
 learning_rate = 2e-5
 
-# Currently 1 epoch for testing, however additional epochs could potentially lead to a better result (carefull not overfit the model since we are using a pretrained BERT!)
 number_of_epochs = 1
 
-# model initialization - using uncased is used for lowercase
 model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased')
 
-# choosing Adam optimizer
 optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, epsilon=1e-08)
 
-# we do not have one-hot vectors, we can use sparce categorical cross entropy and accuracy
 loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 metric = tf.keras.metrics.SparseCategoricalAccuracy('accuracy')
 print("Compiling model..")
 model.compile(optimizer=optimizer, loss=loss, metrics=[metric])
 
-# train dataset
 print("Encoding Training Dataset..")
 ds_train_encoded = encode_examples(ds_train[:50000]).shuffle(10000).batch(batch_size)
 
-# test dataset
 print("Encoding Testing Dataset.. ")
 ds_test_encoded = encode_examples(ds_test[:10000]).batch(batch_size)
 
-# Finally, we are training our model
 print("Training model..")
 bert_history = model.fit(ds_train_encoded, epochs=number_of_epochs, validation_data=ds_test_encoded)
 print("Training Complete. \nSaving...")

@@ -1,66 +1,60 @@
 from transformers import TFBertForSequenceClassification, BertTokenizer
+from transformers import BertTokenizer
 import tensorflow as tf
-import numpy as np
-
 # Load the model and tokenizer
 model = TFBertForSequenceClassification.from_pretrained("trained")
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased", do_lower_case=True)
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
 
 def load_data():
     test = []
-    with open("dataset/test_formatted.csv", encoding="utf8") as file:
-        for line in file:
-            l = line.strip().split(",")
-            text, label = l[1], int(l[0])  # Ensure the label is an integer
-            test.append([text, label])
+    file = open("dataset/test_formatted.csv",encoding="utf8")
+    for line in file:
+        l = line.split(",")
+        l[1] = l[1].replace("\n","")
+        test.append([l[1],l[0]])
     return test
 
-def test(data):
-   
-    texts = [item[0] for item in data]
-    true_labels = np.array([item[1] for item in data])
-    inputs = tokenizer(texts, truncation=True, padding=True, max_length=512, return_tensors="tf")
+def runtest(data):
+    fp=0
+    fn=0
+    tp=0
+    tn=0
+    correct=0
+    for line in data:
+        input = tokenizer.encode(line[0], truncation=True, padding=True, return_tensors="tf")
+        output = model.predict(input)[0]
+        prediction = tf.nn.softmax(output, axis=1)
+        label = tf.argmax(prediction, axis=1)
+        label = label.numpy()
+        if label[0] == 0:
+            if int(line[1]) ==0:
+                tn+=1
+                correct+=1
+            else:
+                fn+=1
+        else:
+            if int(line[1]) ==0:
+                fp+=1
+            else:
+                correct+=1
+                tp+=1
+    return [correct,tp,tn,fp,fn]
 
-    logits = model.predict(inputs).logits  
-    probabilities = tf.nn.softmax(logits, axis=1)  
-    predicted_labels = tf.argmax(probabilities, axis=1).numpy() 
 
-    # Calculate metrics
-    tp = np.sum((predicted_labels == 1) & (true_labels == 1))  
-    fp = np.sum((predicted_labels == 1) & (true_labels == 0))  
-    tn = np.sum((predicted_labels == 0) & (true_labels == 0)) 
-    fn = np.sum((predicted_labels == 0) & (true_labels == 1))  
 
-    correct = tp + tn
-    accuracy = correct / len(true_labels)
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1_score = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-
-    return {
-        "accuracy": accuracy,
-        "true_positives": tp,
-        "true_negatives": tn,
-        "false_positives": fp,
-        "false_negatives": fn,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1_score,
-    }
-
-# Load the dataset
 data = load_data()
+correct,tp,tn,fp,fn = runtest(data[:1000])
+accuracy = correct/1000
+precision = tp / (tp+fp)
+recall = tp / (tp+fn)
+f1score = (2 * precision * recall) / (precision + recall) 
 
-# Run the evaluation
-metrics = test(data)
-
-# Print the results
-print(f"""Accuracy: {metrics['accuracy']:.4f}
-True Positives: {metrics['true_positives']}
-False Positives: {metrics['false_positives']}
-True Negatives: {metrics['true_negatives']}
-False Negatives: {metrics['false_negatives']}
-Precision: {metrics['precision']:.4f}
-Recall: {metrics['recall']:.4f}
-F1 Score: {metrics['f1_score']:.4f}
+print(f"""Accuracy: {accuracy}
+True Positives: {tp}
+False Positives: {fp}
+True Negatives: {tn}
+False Negatives: {fn}
+Precision: {precision}
+Recall: {recall}
+F1 Score: {f1score}
 """)
