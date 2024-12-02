@@ -43,8 +43,8 @@ def runtest(data):
 
 
 data = load_data()
-correct,tp,tn,fp,fn = runtest(data[:1000])
-accuracy = correct/1000
+correct,tp,tn,fp,fn = runtest(data[:10000])
+accuracy = correct/10000
 precision = tp / (tp+fp)
 recall = tp / (tp+fn)
 f1score = (2 * precision * recall) / (precision + recall) 
